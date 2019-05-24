@@ -14,5 +14,5 @@ main = do
     args <- getArgs
     script <- readFile (head args)
     let cmds = parse . lexString $ script
-    runStateT (interpret cmds) emptyDM
+    render cmds
 

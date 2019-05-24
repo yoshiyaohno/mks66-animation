@@ -9,6 +9,7 @@ import Lighting
 import qualified Solids as S
 import qualified Transform as T
 
+import Text.Printf
 import System.IO
 import System.Process
 import System.Directory
@@ -21,6 +22,14 @@ import qualified Data.List as L
 
 -- lol
 
+findFrames :: [Command] -> Frame
+findFrames cmds =
+    case ([ round x | CmdFrames x <- cmds ]) of
+        [] -> error "no frames command found, stopping..."
+        [ok] -> ok
+        _  -> error "multiple frams commands found, stopping..."
+
+-- I just want this to work god damn pee pee 
 findFramesName :: [Command] -> DrawMats
 findFramesName cmds = let
     f = case ([ round x | CmdFrames x <- cmds ]) of
@@ -36,11 +45,18 @@ findFramesName cmds = let
 interpretFrame :: MonadReader Frame m => [Command] -> m DrawMats
 interpretFrame cmds = execStateT (interpret cmds) (findFramesName cmds)
 
-saveFrame :: MonadIO m => DrawMats -> m ()
-saveFrame = undefined --nuttt
+saveFrame :: (MonadReader Frame m, MonadIO m) => DrawMats -> m ()
+saveFrame dm = do
+    fr <- ask
+    let path = "anim/" ++ baseName dm ++ (printf "_%04d.png" fr)
+    liftIO $ do
+        writeFile ".tempimg.ppm" (printPixels $ getScreen dm)
+        callProcess "convert" [".tempimg.ppm", path]
+        removeFile ".tempimg.ppm"
 
--- some kind of absolute sneeze..... the culmination of everything
---  \cmds -> mapM_ . runReaderT $ interpretFrame cmds >>= saveFrame
+render :: (MonadIO m) => [Command] -> m ()
+render cmds = (mapM_ . runReaderT $ interpretFrame cmds >>= saveFrame) [0..fs]
+    where fs = findFrames cmds
 
 ----END STUFF TTHAT MAYBE SHOULD NOT BE HERE----
 
@@ -60,10 +76,10 @@ cmd c = case c of
     CmdMove     a b         -> move     a b
     CmdScale    a b         -> scale    a b
     CmdRotate   a b c       -> rote     a b c
---  CmdDisplay              -> display
---  CmdSave path            -> save path
     CmdConstants s r g b i a-> constants s r g b i a
     CmdVary s a b c d       -> vary s (round a) (round b) c d
+--  CmdDisplay              -> display
+--  CmdSave path            -> save path
     _                       -> return ()
 
 vary :: (MonadState DrawMats m) =>
@@ -105,11 +121,23 @@ rote ax theta k = do
             | ax == AxisZ = T.rotZ (-theta)
     modify . modTransform $ (mappend . fmap (scal*) $ roti ax theta)
 
-scale :: (MonadState DrawMats m) => Vec3 -> MS -> m ()
-scale (x,y,z) _ = modify . modTransform $ (mappend $ T.scale x y z)
+scale :: (MonadReader Frame m, MonadState DrawMats m) => Vec3 -> MS -> m ()
+scale (x,y,z) k = do
+    f <- ask
+    dm <- get
+    let scal = case k of 
+            Just name -> do findKnob name dm f
+            Nothing   -> 1
+    modify . modTransform $ (mappend . fmap (scal*) $ T.scale x y z)
 
-move :: (MonadState DrawMats m) => Vec3 -> MS -> m ()
-move (x,y,z) _ = modify . modTransform $ (mappend $ T.trans x y z)
+move :: (MonadReader Frame m, MonadState DrawMats m) => Vec3 -> MS -> m ()
+move (x,y,z) k = do
+    f <- ask
+    dm <- get
+    let scal = case k of 
+            Just name -> do findKnob name dm f
+            Nothing   -> 1
+    modify . modTransform $ (mappend $ T.trans x y z)
 
 line :: (MonadState DrawMats m) => MS -> Vec3 -> MS -> Vec3 -> MS -> m ()
 line _ (x0,y0,z0) _ (x1,y1,z1) _ = do

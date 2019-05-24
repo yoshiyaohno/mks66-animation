@@ -1,10 +1,10 @@
 default: main
 	@echo
-	@echo rendering image...
-	./mdl face.mdl
+	@echo rendering animation...
+	./mdl spinny.mdl
 
 main: Main.hs Parser.hs Transform.hs Line.hs Solids.hs Screen.hs DrawMats.hs \
-		Lighting.hs Lexer.hs
+		Lighting.hs Lexer.hs Interpret.hs
 	ghc -dynamic -O2 Main.hs -o mdl
 
 Parser.hs: mdl.y
@@ -20,4 +20,4 @@ imgclean:
 	rm *.ppm *.png .tempimg.ppm
 
 run:
-	./Main script
+	./mdl spinny.mdl
