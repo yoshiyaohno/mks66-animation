@@ -17,7 +17,7 @@ clean:
 	rm *.hi *.o Parser.hs Lexer.hs mdl .tempimg.ppm anim/*
 
 imgclean:
-	rm *.ppm *.png *.gif .tempimg.ppm
+	rm *.ppm *.png *.gif .tempimg.ppm anim/*
 
 run:
 	./mdl spinny.mdl

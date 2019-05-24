@@ -55,7 +55,7 @@ saveFrame dm = do
         removeFile ".tempimg.ppm"
 
 render :: (MonadIO m) => [Command] -> m ()
-render cmds = (mapM_ . runReaderT $ interpretFrame cmds >>= saveFrame) [0..fs]
+render cmds = (mapM_ . runReaderT $ interpretFrame cmds >>= saveFrame) [0..fs-1]
     where fs = findFrames cmds
 
 ----END STUFF TTHAT MAYBE SHOULD NOT BE HERE----
@@ -112,32 +112,32 @@ rote :: (MonadReader Frame m, MonadState DrawMats m) => Axis -> Db -> MS -> m ()
 rote ax theta k = do
     f <- ask
     dm <- get
-    let scal = case k of 
+    let sc = case k of 
             Just name -> do findKnob name dm f
             Nothing   -> 1
         roti ax theta
             | ax == AxisX = T.rotX (-theta)
             | ax == AxisY = T.rotY (-theta)
             | ax == AxisZ = T.rotZ (-theta)
-    modify . modTransform $ (mappend . fmap (scal*) $ roti ax theta)
+    modify . modTransform $ (mappend $ roti ax (sc*theta))
 
 scale :: (MonadReader Frame m, MonadState DrawMats m) => Vec3 -> MS -> m ()
 scale (x,y,z) k = do
     f <- ask
     dm <- get
-    let scal = case k of 
+    let sc = case k of 
             Just name -> do findKnob name dm f
             Nothing   -> 1
-    modify . modTransform $ (mappend . fmap (scal*) $ T.scale x y z)
+    modify . modTransform $ (mappend $ T.scale (sc*x) (sc*y) (sc*z))
 
 move :: (MonadReader Frame m, MonadState DrawMats m) => Vec3 -> MS -> m ()
 move (x,y,z) k = do
     f <- ask
     dm <- get
-    let scal = case k of 
+    let sc = case k of 
             Just name -> do findKnob name dm f
             Nothing   -> 1
-    modify . modTransform $ (mappend $ T.trans x y z)
+    modify . modTransform $ (mappend $ T.trans (sc*x) (sc*y) (sc*z))
 
 line :: (MonadState DrawMats m) => MS -> Vec3 -> MS -> Vec3 -> MS -> m ()
 line _ (x0,y0,z0) _ (x1,y1,z1) _ = do
