@@ -8,14 +8,6 @@ import Transform
 import Data.Array.Unboxed
 import qualified Data.Map as M
 
-data Material = Material
-    { kar :: Double, kdr :: Double, ksr :: Double
-    , kag :: Double, kdg :: Double, ksg :: Double
-    , kab :: Double, kdb :: Double, ksb :: Double
-    , ir  :: Double, ig  :: Double, ib  :: Double
-    , alph :: Double
-    }
-
 defaultMat :: Material
 defaultMat = Material
     0.1 0.6 0.4
@@ -25,22 +17,41 @@ defaultMat = Material
     10
     -- god tier formatting
 
-type Materials = M.Map String Material
-type Args = [String]
+type Knob = Int -> Double
+
+type Materials  = M.Map String Material
+type Knobs      = M.Map String Knob
+
 data DrawMats = DrawMats
      { getScreen :: Screen
      , getZBuf   :: ZBuf
      , getTStack :: [Transform Double]
      , getMats   :: Materials
+     , getKnobs  :: Knobs
      }
+
+data Material = Material
+    { kar :: Double, kdr :: Double, ksr :: Double
+    , kag :: Double, kdg :: Double, ksg :: Double
+    , kab :: Double, kdb :: Double, ksb :: Double
+    , ir  :: Double, ig  :: Double, ib  :: Double
+    , alph :: Double
+    }
 
 emptyDM :: DrawMats
 emptyDM = DrawMats
-    { getScreen = emptyScreen blk (1000, 1000)
+    { getScreen = emptyScreen blk (500, 500)
     , getTStack = [ident]
-    , getZBuf   = emptyZB (1000, 1000)
+    , getZBuf   = emptyZB (500, 500)
     , getMats   = M.empty
+    , getKnobs  = M.empty
     }
+
+initKnob :: String -> (Int -> Double) -> DrawMats -> DrawMats
+initKnob name knob dm =
+    case (M.lookup name $ getKnobs dm) of
+        Nothing -> modKnobs (M.insert name $ const 0) dm
+        Just _  -> id
 
 addMaterial :: String -> Material -> DrawMats -> DrawMats
 addMaterial name mat dm =
@@ -56,6 +67,9 @@ findMaterial name dm =
 
 trTris :: DrawMats -> [Triangle Double] -> [Triangle Double]
 trTris dm = map (trTriangle $ getTransform dm)
+
+modKnobs :: (Knobs -> Knobs) -> DrawMats -> DrawMats
+modKnobs f dm = dm { getKnobs = f $ getKnobs dm }
 
 modMats :: (Materials -> Materials) -> DrawMats -> DrawMats
 modMats f dm = dm { getMats = f $ getMats dm }

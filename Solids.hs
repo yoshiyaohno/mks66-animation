@@ -18,8 +18,8 @@ newtype Pixel = Pixel {getTT :: ((Int, Int), Double)}
 
 piStep :: Floating a => a
 --piStep = pi/6
---piStep = pi/21
-piStep = pi/51
+piStep = pi/21
+--piStep = pi/51
 
 scanTriangle :: Triangle Double -> S.Set Pixel
 scanTriangle (Triangle (a, b, c)) = let

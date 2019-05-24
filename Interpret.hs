@@ -14,7 +14,20 @@ import System.Process
 import System.Directory
 import System.Environment
 import Control.Monad.State
+import Control.Monad.Reader
 import qualified Data.List as L
+
+----   STUFF THaT MAYBE SHOULD NOT BE HERE  ----
+
+-- lol
+
+----END STUFF TTHAT MAYBE SHOULD NOT BE HERE----
+
+type Frame = Int
+
+interpretFrame :: (MonadState DrawMats m, MonadReader Frame m) =>
+    [Command] -> m ()
+interpretFrame = undefined --whip
 
 interpret :: (MonadState DrawMats m, MonadIO m) => [Command] -> m ()
 interpret = mapM_ cmd
@@ -41,21 +54,21 @@ constants name (kar,kdr,ksr) (kag,kdg,ksg) (kab,kdb,ksb) (ir,ig,ib) alph =
     modify $ addMaterial name m
         where m = Material kar kdr ksr kag kdg ksg kab kdb ksb ir ig ib alph
 
-save :: (MonadState DrawMats m, MonadIO m) => String -> m ()
-save path = do
-    dm <- get
-    liftIO $ do
-        writeFile ".tempimg.ppm" (printPixels . downsample $ getScreen dm)
-        callProcess "convert" [".tempimg.ppm", path]
-        removeFile ".tempimg.ppm"
-
-display :: (MonadState DrawMats m, MonadIO m) => m ()
-display = do
-    dm <- get
-    liftIO $ do
-        writeFile ".tempimg.ppm" (printPixels . downsample $ getScreen dm)
-        callProcess "eog" [".tempimg.ppm"]
-        removeFile ".tempimg.ppm"
+--save :: (MonadState DrawMats m, MonadIO m) => String -> m ()
+--save path = do
+--    dm <- get
+--    liftIO $ do
+--        writeFile ".tempimg.ppm" (printPixels {-. downsample-} $ getScreen dm)
+--        callProcess "convert" [".tempimg.ppm", path]
+--        removeFile ".tempimg.ppm"
+--
+--display :: (MonadState DrawMats m, MonadIO m) => m ()
+--display = do
+--    dm <- get
+--    liftIO $ do
+--        writeFile ".tempimg.ppm" (printPixels {-. downsample-} $ getScreen dm)
+--        callProcess "eog" [".tempimg.ppm"]
+--        removeFile ".tempimg.ppm"
 
 rote :: (MonadState DrawMats m) => Axis -> Db -> MS -> m ()
 rote ax theta _ = modify . modTransform $ (mappend $ roti ax theta)
