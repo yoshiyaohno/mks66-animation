@@ -5,6 +5,7 @@ import Screen
 import Solids
 import Transform
 
+import Data.Maybe
 import Data.Array.Unboxed
 import qualified Data.Map as M
 
@@ -17,18 +18,20 @@ defaultMat = Material
     10
     -- god tier formatting
 
-type Knob = Int -> Double
+type Frame = Int
 
 type Materials  = M.Map String Material
-type Knobs      = M.Map String Knob
+type Knobs      = M.Map String (Frame -> Double)
 
 data DrawMats = DrawMats
-     { getScreen :: Screen
-     , getZBuf   :: ZBuf
-     , getTStack :: [Transform Double]
-     , getMats   :: Materials
-     , getKnobs  :: Knobs
-     }
+    { getScreen :: Screen
+    , getZBuf   :: ZBuf
+    , getTStack :: [Transform Double]
+    , getMats   :: Materials
+    , getKnobs  :: Knobs
+    , numFrames :: Int
+    , baseName  :: String
+    }
 
 data Material = Material
     { kar :: Double, kdr :: Double, ksr :: Double
@@ -45,13 +48,31 @@ emptyDM = DrawMats
     , getZBuf   = emptyZB (500, 500)
     , getMats   = M.empty
     , getKnobs  = M.empty
+    , numFrames = 0
+    , baseName  = "anim"
     }
 
-initKnob :: String -> (Int -> Double) -> DrawMats -> DrawMats
-initKnob name knob dm =
+klerp :: Frame -> Frame -> Double -> Double -> Frame -> Double
+klerp sT eT sV eV t =
+    (1 - ((fromIntegral $ t - sT)/(fromIntegral eT))) * sV 
+    + ((fromIntegral $ t - sT)/(fromIntegral eT)) * eV
+
+appendKnob :: String -> Frame -> Frame -> Double -> Double ->
+    DrawMats -> DrawMats
+appendKnob name sT eT sV eV dm = modKnobs (M.insert name newKnob) dm
+    where curKnob = findKnob name dm
+          newKnob t | t >= sT && t <= eT = klerp sT eT sV eV t
+                    | otherwise          = curKnob t
+
+findKnob :: String -> DrawMats -> Frame -> Double
+findKnob name dm = fromJust . M.lookup name . getKnobs $ initKnob name dm
+-- oh sneeze
+
+initKnob :: String -> DrawMats -> DrawMats
+initKnob name dm =
     case (M.lookup name $ getKnobs dm) of
         Nothing -> modKnobs (M.insert name $ const 0) dm
-        Just _  -> id
+        Just _  -> dm
 
 addMaterial :: String -> Material -> DrawMats -> DrawMats
 addMaterial name mat dm =

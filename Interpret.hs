@@ -21,25 +21,35 @@ import qualified Data.List as L
 
 -- lol
 
-type Frame = Int
+findFramesName :: [Command] -> DrawMats
+findFramesName cmds = let
+    f = case ([ round x | CmdFrames x <- cmds ]) of
+        [] -> error "no frames command found, stopping..."
+        [ok] -> ok
+        _  -> error "multiple frams commands found, stopping..."
+    nam = case ([ n | CmdBasename n <- cmds ]) of
+        [] -> "anim"
+        [ok] -> ok
+        _ -> error "multiple basenames found, stopping..."
+    in emptyDM { numFrames = f, baseName = nam }
 
-interpretFrame :: (MonadState DrawMats m, MonadReader Frame m) =>
-    [Command] -> m ()
-interpretFrame = undefined --whip
+interpretFrame :: MonadReader Frame m => [Command] -> m DrawMats
+interpretFrame cmds = execStateT (interpret cmds) (findFramesName cmds)
 
 saveFrame :: MonadIO m => DrawMats -> m ()
 saveFrame = undefined --nuttt
 
 -- some kind of absolute sneeze..... the culmination of everything
---  \cmds -> mapM_ . runReaderT $
---      execStateT (interpretFrame cmds) emptyDM >>= saveFrame
+--  \cmds -> mapM_ . runReaderT $ interpretFrame cmds >>= saveFrame
 
 ----END STUFF TTHAT MAYBE SHOULD NOT BE HERE----
 
-interpret :: (MonadState DrawMats m, MonadIO m) => [Command] -> m ()
+-- we gotta make em all monadreaders
+
+interpret :: (MonadState DrawMats m, MonadReader Frame m) => [Command] -> m ()
 interpret = mapM_ cmd
 
-cmd :: (MonadState DrawMats m, MonadIO m) => Command -> m ()
+cmd :: (MonadReader Frame m, MonadState DrawMats m) => Command -> m ()
 cmd c = case c of
     CmdPush                 -> push
     CmdPop                  -> pop
@@ -50,10 +60,15 @@ cmd c = case c of
     CmdMove     a b         -> move     a b
     CmdScale    a b         -> scale    a b
     CmdRotate   a b c       -> rote     a b c
-    CmdDisplay              -> display
-    CmdSave path            -> save path
+--  CmdDisplay              -> display
+--  CmdSave path            -> save path
     CmdConstants s r g b i a-> constants s r g b i a
+    CmdVary s a b c d       -> vary s (round a) (round b) c d
     _                       -> return ()
+
+vary :: (MonadState DrawMats m) =>
+    String -> Frame -> Frame -> Double -> Double -> m ()
+vary name sT eT sV eV = modify $ appendKnob name sT eT sV eV
 
 constants :: (MonadState DrawMats m) =>
     String -> Vec3 -> Vec3 -> Vec3 -> Vec3 -> Db -> m ()
@@ -77,12 +92,18 @@ constants name (kar,kdr,ksr) (kag,kdg,ksg) (kab,kdb,ksb) (ir,ig,ib) alph =
 --        callProcess "eog" [".tempimg.ppm"]
 --        removeFile ".tempimg.ppm"
 
-rote :: (MonadState DrawMats m) => Axis -> Db -> MS -> m ()
-rote ax theta _ = modify . modTransform $ (mappend $ roti ax theta)
-    where roti ax theta
+rote :: (MonadReader Frame m, MonadState DrawMats m) => Axis -> Db -> MS -> m ()
+rote ax theta k = do
+    f <- ask
+    dm <- get
+    let scal = case k of 
+            Just name -> do findKnob name dm f
+            Nothing   -> 1
+        roti ax theta
             | ax == AxisX = T.rotX (-theta)
             | ax == AxisY = T.rotY (-theta)
             | ax == AxisZ = T.rotZ (-theta)
+    modify . modTransform $ (mappend . fmap (scal*) $ roti ax theta)
 
 scale :: (MonadState DrawMats m) => Vec3 -> MS -> m ()
 scale (x,y,z) _ = modify . modTransform $ (mappend $ T.scale x y z)

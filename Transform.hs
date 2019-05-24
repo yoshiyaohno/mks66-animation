@@ -13,6 +13,9 @@ newtype Transform a = Transform { getVV :: Vect (Vect a) }
 instance (Show a) => Show (Transform a) where
     show = unlines . map (unwords . map show . toList) . toList . getVV
 
+instance Functor Transform where
+    fmap f = Transform . (fmap.fmap $ f) . getVV
+
 instance (Num t) => Sem.Semigroup (Transform t) where
     (<>) = comp
 
