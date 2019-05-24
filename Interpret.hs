@@ -21,13 +21,20 @@ import qualified Data.List as L
 
 -- lol
 
-----END STUFF TTHAT MAYBE SHOULD NOT BE HERE----
-
 type Frame = Int
 
 interpretFrame :: (MonadState DrawMats m, MonadReader Frame m) =>
     [Command] -> m ()
 interpretFrame = undefined --whip
+
+saveFrame :: MonadIO m => DrawMats -> m ()
+saveFrame = undefined --nuttt
+
+-- some kind of absolute sneeze..... the culmination of everything
+--  \cmds -> mapM_ . runReaderT $
+--      execStateT (interpretFrame cmds) emptyDM >>= saveFrame
+
+----END STUFF TTHAT MAYBE SHOULD NOT BE HERE----
 
 interpret :: (MonadState DrawMats m, MonadIO m) => [Command] -> m ()
 interpret = mapM_ cmd
