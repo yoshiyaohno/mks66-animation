@@ -14,10 +14,10 @@ Lexer.hs: mdl.x
 	alex -o Lexer.hs -g mdl.x
 
 clean:
-	rm *.hi *.o Parser.hs Lexer.hs mdl .tempimg.ppm
+	rm *.hi *.o Parser.hs Lexer.hs mdl .tempimg.ppm anim/*
 
 imgclean:
-	rm *.ppm *.png .tempimg.ppm
+	rm *.ppm *.png *.gif .tempimg.ppm
 
 run:
 	./mdl spinny.mdl
