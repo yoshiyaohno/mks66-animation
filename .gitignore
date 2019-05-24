@@ -2,6 +2,7 @@ Lexer.hs
 Parser.hs
 *.ppm
 *.png
+*.gif
 mdl
 
 dist
