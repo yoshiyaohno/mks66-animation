@@ -2,10 +2,6 @@ default: main
 	@echo
 	@echo rendering animation...
 	./mdl test.mdl
-	@echo
-	@echo I haven\'t got converting as part of the script yet
-	convert anim/jef* -delay 2 test.gif
-	eog test.gif
 
 main: Main.hs Parser.hs Transform.hs Line.hs Solids.hs Screen.hs DrawMats.hs \
 		Lighting.hs Lexer.hs Interpret.hs

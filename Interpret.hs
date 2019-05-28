@@ -29,7 +29,7 @@ findFrames cmds =
         [ok] -> ok
         _  -> error "multiple frams commands found, stopping..."
 
--- I just want this to work god damn pee pee 
+-- I just want this to work god damn
 findFramesName :: [Command] -> DrawMats
 findFramesName cmds = let
     f = case ([ round x | CmdFrames x <- cmds ]) of
@@ -42,8 +42,11 @@ findFramesName cmds = let
         _ -> error "multiple basenames found, stopping..."
     in emptyDM { numFrames = f, baseName = nam }
 
+setupKnobs :: [Command] -> DrawMats
+setupKnobs cmds = execState (mapM_ godSneezeForVary cmds) (findFramesName cmds)
+
 interpretFrame :: MonadReader Frame m => [Command] -> m DrawMats
-interpretFrame cmds = execStateT (interpret cmds) (findFramesName cmds)
+interpretFrame cmds = execStateT (interpret cmds) (setupKnobs cmds)
 
 saveFrame :: (MonadReader Frame m, MonadIO m) => DrawMats -> m ()
 saveFrame dm = do
@@ -55,8 +58,13 @@ saveFrame dm = do
         removeFile ".tempimg.ppm"
 
 render :: (MonadIO m) => [Command] -> m ()
-render cmds = (mapM_ . runReaderT $ interpretFrame cmds >>= saveFrame) [0..fs-1]
-    where fs = findFrames cmds
+render cmds = do
+    let fs = numFrames  $ findFramesName cmds
+        nm = baseName   $ findFramesName cmds
+    (mapM_ . runReaderT $ interpretFrame cmds >>= saveFrame) [0..fs-1]
+    liftIO $ do
+        callProcess "convert" ["anim/"++nm++"*", "-delay", "1.7", nm++".gif"]
+        callProcess "eog" [nm++".gif"]
 
 ----END STUFF TTHAT MAYBE SHOULD NOT BE HERE----
 
@@ -64,6 +72,11 @@ render cmds = (mapM_ . runReaderT $ interpretFrame cmds >>= saveFrame) [0..fs-1]
 
 interpret :: (MonadState DrawMats m, MonadReader Frame m) => [Command] -> m ()
 interpret = mapM_ cmd
+
+godSneezeForVary :: MonadState DrawMats m => Command -> m ()
+godSneezeForVary c = case c of
+    CmdVary s a b c d   -> vary s (round a) (round b) c d
+    _                   -> return ()
 
 cmd :: (MonadReader Frame m, MonadState DrawMats m) => Command -> m ()
 cmd c = case c of
@@ -113,7 +126,7 @@ rote ax theta k = do
     f <- ask
     dm <- get
     let sc = case k of 
-            Just name -> do findKnob name dm f
+            Just name -> findKnob name dm f
             Nothing   -> 1
         roti ax theta
             | ax == AxisX = T.rotX (-theta)
@@ -126,7 +139,7 @@ scale (x,y,z) k = do
     f <- ask
     dm <- get
     let sc = case k of 
-            Just name -> do findKnob name dm f
+            Just name -> findKnob name dm f
             Nothing   -> 1
     modify . modTransform $ (mappend $ T.scale (sc*x) (sc*y) (sc*z))
 
@@ -135,7 +148,7 @@ move (x,y,z) k = do
     f <- ask
     dm <- get
     let sc = case k of 
-            Just name -> do findKnob name dm f
+            Just name -> findKnob name dm f
             Nothing   -> 1
     modify . modTransform $ (mappend $ T.trans (sc*x) (sc*y) (sc*z))
 

@@ -1,8 +1,12 @@
-frames 10
+frames 64
 basename jef
 
-vary okay 0 9 0 1
-
 move 250 250 0 okay
+push
+
+rotate x 360 okay
+rotate y -360 okay
 sphere 0 0 0 50
+
+vary okay 0 63 0 1
 
