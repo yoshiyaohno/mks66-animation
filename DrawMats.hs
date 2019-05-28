@@ -54,8 +54,8 @@ emptyDM = DrawMats
 
 klerp :: Frame -> Frame -> Double -> Double -> Frame -> Double
 klerp sT eT sV eV t =
-    (1 - ((fromIntegral $ t - sT)/(fromIntegral eT))) * sV 
-    + ((fromIntegral $ t - sT)/(fromIntegral eT)) * eV
+    (1 - ((fromIntegral $ t - sT)/(fromIntegral $ eT - sT))) * sV 
+    + ((fromIntegral $ t - sT)/(fromIntegral $ eT - sT)) * eV
 
 appendKnob :: String -> Frame -> Frame -> Double -> Double ->
     DrawMats -> DrawMats
