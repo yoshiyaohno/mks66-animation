@@ -1,8 +1,8 @@
 frames 10
 basename jef
 
-move 250 250 0 peepee
-sphere 0 0 0 50
+vary okay 0 9 0 1
 
-vary peepee 0 10 0 1
+move 250 250 0 okay
+sphere 0 0 0 50
 

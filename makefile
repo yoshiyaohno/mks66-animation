@@ -1,7 +1,11 @@
 default: main
 	@echo
 	@echo rendering animation...
-	./mdl spinny.mdl
+	./mdl test.mdl
+	@echo
+	@echo I haven\'t got converting as part of the script yet
+	convert -delay 2 anim/test* test.gif
+	eog test.gif
 
 main: Main.hs Parser.hs Transform.hs Line.hs Solids.hs Screen.hs DrawMats.hs \
 		Lighting.hs Lexer.hs Interpret.hs
