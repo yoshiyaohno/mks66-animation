@@ -63,7 +63,7 @@ render cmds = do
         nm = baseName   $ findFramesName cmds
     (mapM_ . runReaderT $ interpretFrame cmds >>= saveFrame) [0..fs-1]
     liftIO $ do
-        callProcess "convert" ["anim/"++nm++"*", "-delay", "1.7", nm++".gif"]
+        callProcess "convert" ["-delay", "1.7", "anim/"++nm++"*", nm++".gif"]
         callProcess "eog" [nm++".gif"]
 
 ----END STUFF TTHAT MAYBE SHOULD NOT BE HERE----

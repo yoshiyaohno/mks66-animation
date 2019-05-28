@@ -4,8 +4,8 @@ basename jef
 move 250 250 0 okay
 push
 
-rotate x 360 okay
-rotate y -360 okay
+rotate x 180 okay
+rotate y -120 okay
 sphere 0 0 0 50
 
 vary okay 0 63 0 1
