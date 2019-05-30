@@ -55,6 +55,7 @@ saveFrame dm = do
     liftIO $ do
         writeFile ".tempimg.ppm" (printPixels $ getScreen dm)
         callProcess "convert" [".tempimg.ppm", path]
+        putStr $ printf "rendered frame %4d\n" fr
         removeFile ".tempimg.ppm"
 
 render :: (MonadIO m) => [Command] -> m ()
@@ -63,6 +64,7 @@ render cmds = do
         nm = baseName   $ findFramesName cmds
     (mapM_ . runReaderT $ interpretFrame cmds >>= saveFrame) [0..fs-1]
     liftIO $ do
+        putStrLn "\nrenderinc complete, animating..."
         callProcess "convert" ["-delay", "1.7", "anim/"++nm++"*", nm++".gif"]
         callProcess "eog" [nm++".gif"]
 

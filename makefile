@@ -1,9 +1,9 @@
-default: main
+default: mdl
 	@echo
 	@echo rendering animation...
 	./mdl test.mdl
 
-main: Main.hs Parser.hs Transform.hs Line.hs Solids.hs Screen.hs DrawMats.hs \
+mdl: Main.hs Parser.hs Transform.hs Line.hs Solids.hs Screen.hs DrawMats.hs \
 		Lighting.hs Lexer.hs Interpret.hs
 	ghc -dynamic -O2 Main.hs -o mdl
 
