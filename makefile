@@ -1,7 +1,7 @@
 default: mdl
 	@echo
 	@echo rendering animation...
-	./mdl test.mdl
+	./mdl crystal.mdl
 
 mdl: Main.hs Parser.hs Transform.hs Line.hs Solids.hs Screen.hs DrawMats.hs \
 		Lighting.hs Lexer.hs Interpret.hs
@@ -20,4 +20,4 @@ imgclean:
 	rm *.ppm *.png *.gif .tempimg.ppm anim/*
 
 run:
-	./mdl spinny.mdl
+	./mdl crystal.mdl

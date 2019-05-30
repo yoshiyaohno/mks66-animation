@@ -1,15 +1,17 @@
 frames 90
+basename crystal
 constants shiny_purple 0.7 0.3 0.8 0.5 0.1 0.6 0.7 0.3 0.8
 
 move 250 250 0
 push
     rotate y 360 slowcam
     push
-        //crystal
+        // crystal
         scale 1 4 1
-        rotate z -35
-        rotate x -35
-        box shiny_purple -20 -20 -20 40 40 40
+        rotate x 35
+        rotate z 45
+        box shiny_purple 20 20 20 40 40 40
+        //box shiny_purple 0 0 0 40 40 40
 
 vary slowcam    0 90 0 1
 vary sharp      0 30 1 1 
